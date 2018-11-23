@@ -1,0 +1,66 @@
+version: '2'
+services:
+    discovery-server:
+        container_name: discovery
+        build:
+            context: ./discovery-server
+            dockerfile: Dockerfile-discovery-server
+        image: discovery:latest
+        expose:
+            - 8081
+        networks:
+            - spring-test-network
+        logging:
+            driver: json-file   
+        ports:
+            - "5001:8081"    
+    config-server:
+        container_name: config-server
+        build:
+            context: ./config-server
+            dockerfile: Dockerfile-config-server
+        image: config-server:latest
+        entrypoint: /opt/entrypoint.sh 10
+        environment:
+            EUREKA_URI: 'http://discovery-server:8081/eureka'
+            CONFIG_HOME: /opt/config-repo
+        expose:
+            - 9999
+        links: 
+            - discovery-server:discovery-server
+        networks:
+            - spring-test-network
+        depends_on:
+            - discovery-server
+        volumes:
+            - ./config-repo:/opt/config-repo
+        logging:
+            driver: json-file
+        ports:
+            - "5002:9999"
+    config-client:
+        container_name: config-client
+        build:
+            context: ./config-client
+            dockerfile: Dockerfile-config-client
+        image: config-client:latest
+        entrypoint: /opt/entrypoint.sh 100
+        environment:
+            EUREKA_URI: 'http://discovery-server:8081/eureka'
+        expose:
+            - 9000
+        links: 
+            - discovery-server:discovery-server
+            - config-server:config-server
+        networks:
+            - spring-test-network
+        depends_on:
+            - discovery-server
+            - config-server
+        logging:
+            driver: json-file
+        ports:
+            - 5003:9000
+networks:
+    spring-test-network:
+        driver: bridge

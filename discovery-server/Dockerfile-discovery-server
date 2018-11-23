@@ -1,0 +1,8 @@
+FROM openjdk:8-jdk-alpine
+
+COPY target/discovery.jar /opt/
+
+EXPOSE 8081
+
+ENTRYPOINT ["/usr/bin/java"]
+CMD ["-jar", "/opt/discovery.jar"]

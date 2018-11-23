@@ -1,0 +1,9 @@
+FROM openjdk:8-jdk-alpine
+
+COPY target/config-client.jar /opt/
+COPY entrypoint.sh /opt/
+RUN chmod 777 /opt/entrypoint.sh
+
+EXPOSE 9000
+
+CMD ["java", "-jar", "/opt/config-client.jar"]
