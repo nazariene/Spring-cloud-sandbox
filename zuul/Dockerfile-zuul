@@ -4,7 +4,7 @@ EXPOSE 8081
 
 VOLUME /tmp
 
-ARG JAR_FILE=target/discovery.jar
+ARG JAR_FILE=target/zuul.jar
 ADD ${JAR_FILE} app.jar
 
 CMD ["java","-Djava.security.egd=file:/dev/./urandom","-jar","/app.jar"]

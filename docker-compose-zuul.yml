@@ -1,0 +1,90 @@
+version: '2'
+services:
+    discovery-server:
+        container_name: discovery
+        build:
+            context: ./discovery-server
+            dockerfile: Dockerfile-discovery-server
+        image: discovery:latest
+        expose:
+            - 8081
+        networks:
+            - spring-test-network
+        logging:
+            driver: json-file   
+        ports:
+            - "5001:8081"    
+    eureka-client-1:
+        container_name: eureka-client-1
+        build:
+            context: ./eureka-client
+            dockerfile: Dockerfile-eureka-client
+        image: eureka-client:latest
+        entrypoint: /bin/bash -c "sleep 20 && java -Djava.security.egd=file:/dev/./urandom -jar app.jar"
+        environment:
+            EUREKA_URI: 'http://discovery-server:8081/eureka'
+            CONFIG_HOME: /opt/config-repo
+            SERVER_PORT: 9001
+            DISPLAY_NAME: app_1
+        expose:
+            - 9001
+        links: 
+            - discovery-server:discovery-server
+        networks:
+            - spring-test-network
+        depends_on:
+            - discovery-server
+        logging:
+            driver: json-file
+        ports:
+            - "5002:9001"
+    eureka-client-2:
+        container_name: eureka-client-2
+        build:
+            context: ./eureka-client
+            dockerfile: Dockerfile-eureka-client
+        image: eureka-client:latest
+        entrypoint: /bin/bash -c "sleep 20 && java -Djava.security.egd=file:/dev/./urandom -jar app.jar"
+        environment:
+            EUREKA_URI: 'http://discovery-server:8081/eureka'
+            CONFIG_HOME: /opt/config-repo
+            SERVER_PORT: 9001
+            DISPLAY_NAME: app_2
+        expose:
+            - 9001
+        links: 
+            - discovery-server:discovery-server
+        networks:
+            - spring-test-network
+        depends_on:
+            - discovery-server
+        logging:
+            driver: json-file
+        ports:
+            - "5003:9001"
+    zuul:
+        container_name: zuul-proxy
+        build:
+            context: ./zuul
+            dockerfile: Dockerfile-zuul
+        image: zuul-proxy:latest
+        entrypoint: /bin/bash -c "sleep 20 && java -Djava.security.egd=file:/dev/./urandom -jar app.jar"
+        environment:
+            EUREKA_URI: 'http://discovery-server:8081/eureka'
+            CONFIG_HOME: /opt/config-repo
+            SERVER_PORT: 9000
+        expose:
+            - 9000
+        links: 
+            - discovery-server:discovery-server
+        networks:
+            - spring-test-network
+        depends_on:
+            - discovery-server
+        logging:
+            driver: json-file
+        ports:
+            - "5004:9000"
+networks:
+    spring-test-network:
+        driver: bridge
